@@ -1,0 +1,63 @@
+---
+- name: Reset k3s cluster
+  hosts: all
+  become: yes
+  tasks:
+    - name: Uninstall k3s (if installed)
+      ansible.builtin.command: /usr/local/bin/k3s-uninstall.sh
+      args:
+        warn: false
+      ignore_errors: yes
+
+    - name: Uninstall k3s agent (if installed)
+      ansible.builtin.command: /usr/local/bin/k3s-agent-uninstall.sh
+      args:
+        warn: false
+      ignore_errors: yes
+
+    - name: Remove k3s configuration and data
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /etc/rancher/k3s
+        - /var/lib/rancher/k3s
+        - /etc/systemd/system/k3s.service
+        - /etc/systemd/system/k3s-agent.service
+      ignore_errors: yes
+
+    - name: Stop and remove HAProxy (only on apollo)
+      ansible.builtin.service:
+        name: haproxy
+        state: stopped
+      when: inventory_hostname == 'apollo'
+      ignore_errors: yes
+
+    - name: Uninstall HAProxy
+      ansible.builtin.package:
+        name: haproxy
+        state: absent
+      when: inventory_hostname == 'apollo'
+      ignore_errors: yes
+
+    - name: Clean up HAProxy configuration (only on apollo)
+      ansible.builtin.file:
+        path: /etc/haproxy/haproxy.cfg
+        state: absent
+      when: inventory_hostname == 'apollo'
+      ignore_errors: yes
+
+    - name: Remove Helm binaries
+      ansible.builtin.file:
+        path: /usr/local/bin/helm
+        state: absent
+      ignore_errors: yes
+
+    - name: Remove leftover files and directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /tmp/helm.tar.gz
+        - /usr/local/bin/linux-amd64
+      ignore_errors: yes

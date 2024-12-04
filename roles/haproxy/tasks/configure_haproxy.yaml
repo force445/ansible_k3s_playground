@@ -1,0 +1,21 @@
+---
+- name: Configure HAProxy for k3s API
+  ansible.builtin.copy:
+    dest: /etc/haproxy/haproxy.cfg
+    content: |
+      frontend k8s-api
+          bind *:6443
+          default_backend k8s-masters
+
+      backend k8s-masters
+          balance roundrobin
+          server master1 192.168.24.100:6443 check
+          server master2 192.168.24.101:6443 check
+          server master3 192.168.24.102:6443 check
+  become: true
+
+- name: Restart HAProxy
+  ansible.builtin.service:
+    name: haproxy
+    state: restarted
+  become: true

@@ -1,0 +1,3 @@
+---
+- include_tasks: install_haproxy.yaml
+- include_tasks: configure_haproxy.yaml
