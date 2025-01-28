@@ -7,26 +7,50 @@
   server:
     hosts:
       apollo:
-        ansible_host: x.x.x.x
-        ansible_ssh_private_key_file: /path/to/key
+        ansible_host: <host-machine-ip>
+        ansible_user: <host-username>
+        ansible_ssh_private_key_file: path/to/your/ssh/key
+        become: true
+        become_user: <host-username>
+        become_password: <host-password>
       boreas:
-        ansible_host: x.x.x.x
-        ansible_ssh_private_key_file: /path/to/key
+        ansible_host: <host-machine-ip>
+        ansible_user: <host-username>
+        ansible_ssh_private_key_file: path/to/your/ssh/key
+        become: true
+        become_user: <host-username>
+        become_password: <host-password>
       ares:
-        ansible_host: x.x.x.x
-        ansible_ssh_private_key_file: /path/to/key
+        ansible_host: <host-machine-ip>
+        ansible_user: <host-username>
+        ansible_ssh_private_key_file: path/to/your/ssh/key
+        become: true
+        become_user: <host-username>
+        become_password: <host-password>
 
   agent:
     hosts:
       chaos:
-        ansible_host: x.x.x.x
-        ansible_ssh_private_key_file: /path/to/key
+        ansible_host: <host-machine-ip>
+        ansible_user: <host-username>
+        ansible_ssh_private_key_file: path/to/your/ssh/key
+        become: true
+        become_user: <host-username>
+        become_password: <host-password>
       crios:
-        ansible_host: x.x.x.x
-        ansible_ssh_private_key_file: /path/to/key
+        ansible_host: <host-machine-ip>
+        ansible_user: <host-username>
+        ansible_ssh_private_key_file: path/to/your/ssh/key
+        become: true
+        become_user: <host-username>
+        become_password: <host-password>
       hades:
-        ansible_host: x.x.x.x
-        ansible_ssh_private_key_file: /path/to/key
+        ansible_host: <host-machine-ip>
+        ansible_user: <host-username>
+        ansible_ssh_private_key_file: path/to/your/ssh/key
+        become: true
+        become_user: <host-username>
+        become_password: <host-password>
   cluster:
     children:
       server:
