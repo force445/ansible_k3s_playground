@@ -1,32 +1,32 @@
   # load_balancer:
   #   hosts:
   #     lb1:
-  #       ansible_host: 192.168.24.81
-  #       ansible_ssh_private_key_file: ~/Downloads/id_rsa
+  #       ansible_host: x.x.x.x
+  #       ansible_ssh_private_key_file: /path/to/key
 
   server:
     hosts:
       apollo:
-        ansible_host: 192.168.24.100
-        ansible_ssh_private_key_file: ~/Downloads/id_rsa
+        ansible_host: x.x.x.x
+        ansible_ssh_private_key_file: /path/to/key
       boreas:
-        ansible_host: 192.168.24.101
-        ansible_ssh_private_key_file: ~/Downloads/id_rsa
+        ansible_host: x.x.x.x
+        ansible_ssh_private_key_file: /path/to/key
       ares:
-        ansible_host: 192.168.24.102
-        ansible_ssh_private_key_file: ~/Downloads/id_rsa
+        ansible_host: x.x.x.x
+        ansible_ssh_private_key_file: /path/to/key
 
   agent:
     hosts:
       chaos:
-        ansible_host: 192.168.24.80
-        ansible_ssh_private_key_file: ~/Downloads/id_rsa
+        ansible_host: x.x.x.x
+        ansible_ssh_private_key_file: /path/to/key
       crios:
-        ansible_host: 192.168.24.82
-        ansible_ssh_private_key_file: ~/Downloads/id_rsa
+        ansible_host: x.x.x.x
+        ansible_ssh_private_key_file: /path/to/key
       hades:
-        ansible_host:
-        ansible_ssh_private_key_file:
+        ansible_host: x.x.x.x
+        ansible_ssh_private_key_file: /path/to/key
   cluster:
     children:
       server:
