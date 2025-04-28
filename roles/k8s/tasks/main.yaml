@@ -1,0 +1,6 @@
+---
+- include_tasks: install_k8s_master.yaml
+  when: inventory_hostname == groups['server'][0]
+
+- include_tasks: join_worker_k8s.yaml
+  when: inventory_hostname in groups['agent']
