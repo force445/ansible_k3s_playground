@@ -26,27 +26,6 @@
         - /etc/systemd/system/k3s-agent.service
       ignore_errors: yes
 
-    - name: Stop and remove HAProxy (only on apollo)
-      ansible.builtin.service:
-        name: haproxy
-        state: stopped
-      when: inventory_hostname == 'apollo'
-      ignore_errors: yes
-
-    - name: Uninstall HAProxy
-      ansible.builtin.package:
-        name: haproxy
-        state: absent
-      when: inventory_hostname == 'apollo'
-      ignore_errors: yes
-
-    - name: Clean up HAProxy configuration (only on apollo)
-      ansible.builtin.file:
-        path: /etc/haproxy/haproxy.cfg
-        state: absent
-      when: inventory_hostname == 'apollo'
-      ignore_errors: yes
-
     - name: Remove Helm binaries
       ansible.builtin.file:
         path: /usr/local/bin/helm

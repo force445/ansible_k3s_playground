@@ -5,15 +5,9 @@
       --cluster-init \
       --etcd-snapshot-schedule-cron="0 */12 * * *" \
       --etcd-snapshot-retention=7 \
-      --etcd-s3 \
-      --etcd-s3-bucket="{{ s3_bucket_name }}" \
-      --etcd-s3-region="{{ s3_region }}" \
-      --etcd-s3-endpoint="{{ s3_endpoint }}" \
-      --etcd-s3-folder="backups/" \
-      --etcd-s3-access-key="{{ aws_access_key_id }}" \
-      --etcd-s3-secret-key="{{ aws_secret_access_key }}" \
+      --etcd-snapshot-dir=/var/lib/rancher/k3s/server/db/snapshots\
       --write-kubeconfig-mode 644
-  args: 
+  args:
     creates: /etc/rancher/k3s/k3s.yaml
   become: true
 
