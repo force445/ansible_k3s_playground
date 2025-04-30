@@ -8,7 +8,7 @@
 - name: Configure k3s masters
   hosts: server
   roles:
-    - k3s
+    - k8s
 
 # - name: Add workers to the k3s cluster
 #   hosts: agent
