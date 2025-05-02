@@ -1,0 +1,64 @@
+---
+- name: Reset Kubernetes Cluster
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Reset kubeadm
+      ansible.builtin.shell: kubeadm reset -f
+
+    - name: Remove Kubernetes directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/cni
+        - /var/lib/cni
+        - /var/lib/kubelet
+        - /etc/kubernetes
+        - /opt/cni
+        - /var/lib/etcd
+        - /var/run/kubernetes
+
+    - name: Re-enable swap (optional)
+      ansible.builtin.shell: |
+        cp /etc/fstab /etc/fstab.bak
+        sed -i '/swap/d' /etc/fstab.bak
+        mv /etc/fstab.bak /etc/fstab
+        swapon -a
+      ignore_errors: yes
+
+    - name: Uninstall Kubernetes packages
+      ansible.builtin.apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: absent
+        purge: yes
+        autoremove: yes
+        update_cache: yes
+        allow_change_held_packages: yes
+
+    - name: Remove manually installed kubectl binary
+      ansible.builtin.file:
+        path: /usr/local/bin/kubectl
+        state: absent
+
+    - name: Remove downloaded kubectl files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - ./kubectl
+        - ./kubectl.sha256
+
+- name: Reset Calico CNI (on control plane only)
+  hosts: server
+  become: yes
+  tasks:
+    - name: Uninstall Calico Helm release
+      ansible.builtin.shell: |
+        helm uninstall calico -n tigera-operator || true
+        kubectl delete ns tigera-operator || true
+      ignore_errors: yes
