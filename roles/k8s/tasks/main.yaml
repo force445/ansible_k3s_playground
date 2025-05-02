@@ -1,6 +1,16 @@
----
-- include_tasks: install_k8s_master.yaml
-  when: inventory_hostname == groups['server'][0]
+- name: Include package setup
+  include_tasks: setup_packages.yaml
 
-# - include_tasks: join_worker_k8s.yaml
-#   when: inventory_hostname in groups['agent']
+- name: Include containerd setup
+  include_tasks: setup_containerd.yaml
+
+- name: Include Kubernetes tools setup
+  include_tasks: setup_kubernetes_tools.yaml
+
+- name: Include master setup tasks
+  include_tasks: setup_master.yaml
+  when: "'server' in group_names"
+
+- name: Include worker setup tasks
+  include_tasks: setup_worker.yaml
+  when: "'agent' in group_names"

@@ -1,6 +1,4 @@
 ---
-- include_tasks: pkg.yaml
-
 - name: Install Docker
   ansible.builtin.shell: |
     sudo apt-get update

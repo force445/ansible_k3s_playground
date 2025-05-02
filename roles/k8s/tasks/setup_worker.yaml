@@ -1,0 +1,3 @@
+- name: Skip join task (only master node is being set up)
+  debug:
+    msg: "Worker join is skipped for now."

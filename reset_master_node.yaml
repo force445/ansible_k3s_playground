@@ -1,0 +1,56 @@
+---
+- name: Reset Kubernetes Master Node
+  hosts: server
+  become: true
+  tasks:
+
+    - name: Drain node (optional, skip if first setup)
+      shell: |
+        kubectl drain {{ inventory_hostname }} --delete-emptydir-data --force --ignore-daemonsets
+      ignore_errors: true
+
+    - name: Reset kubeadm
+      shell: kubeadm reset -f
+      ignore_errors: true
+
+    - name: Stop kubelet service
+      systemd:
+        name: kubelet
+        state: stopped
+        enabled: false
+      ignore_errors: true
+
+    - name: Stop containerd service
+      systemd:
+        name: containerd
+        state: stopped
+        enabled: false
+      ignore_errors: true
+
+    - name: Remove Kubernetes-related directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /etc/kubernetes
+        - /var/lib/etcd
+        - /var/lib/kubelet
+        - /etc/cni
+        - /opt/cni
+        - /var/lib/cni
+        - /run/flannel
+        - /root/.kube
+      ignore_errors: true
+
+    - name: Remove kubeconfig from ansible_user
+      file:
+        path: "/home/{{ ansible_user }}/.kube"
+        state: absent
+      ignore_errors: true
+
+    - name: Reload systemd and restart containerd
+      systemd:
+        daemon_reload: true
+        name: containerd
+        state: restarted
+        enabled: true

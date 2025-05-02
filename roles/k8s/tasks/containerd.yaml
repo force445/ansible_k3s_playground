@@ -1,0 +1,36 @@
+- name: Download containerd
+  get_url:
+    url: https://github.com/containerd/containerd/releases/download/v1.7.14/containerd-1.7.14-linux-amd64.tar.gz
+    dest: /tmp/containerd.tar.gz
+
+- name: Extract
+  unarchive:
+    src: /tmp/containerd.tar.gz
+    dest: /usr/local
+    remote_src: true
+    creates: /usr/local/bin/containerd
+
+- name: Setup systemd
+  get_url:
+    url: https://raw.githubusercontent.com/containerd/containerd/v1.7.14/containerd.service
+    dest: /etc/systemd/system/containerd.service
+
+- name: Generate config.toml
+  shell: |
+    mkdir -p /etc/containerd
+    containerd config default > /etc/containerd/config.toml
+  args:
+    creates: /etc/containerd/config.toml
+
+- name: Set SystemdCgroup true
+  replace:
+    path: /etc/containerd/config.toml
+    regexp: 'SystemdCgroup = false'
+    replace: 'SystemdCgroup = true'
+
+- name: Restart containerd
+  systemd:
+    daemon_reload: true
+    name: containerd
+    state: restarted
+    enabled: true

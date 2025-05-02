@@ -5,8 +5,9 @@
 #     - haproxy
 # In case of external load balancer
 
-- name: Configure k3s masters
+- name: Configure k8s masters
   hosts: server
+  become: true
   roles:
     - k8s
 

@@ -1,0 +1,74 @@
+---
+- name: Reset Kubernetes and related services completely
+  hosts: server
+  become: true
+  tasks:
+
+    - name: Stop kubelet
+      systemd:
+        name: kubelet
+        state: stopped
+      ignore_errors: true
+
+    - name: Stop containerd
+      systemd:
+        name: containerd
+        state: stopped
+      ignore_errors: true
+
+    - name: Reset Kubernetes cluster
+      shell: kubeadm reset -f
+      ignore_errors: true
+
+    - name: Remove Kubernetes config and data directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/kubernetes
+        - /var/lib/etcd
+        - /var/lib/kubelet
+        - /var/lib/cni
+        - /etc/cni
+        - /opt/cni
+        - /run/flannel
+        - ~/.kube
+        - /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+      ignore_errors: true
+
+    - name: Remove CNI binaries
+      file:
+        path: /opt/cni/bin
+        state: absent
+      ignore_errors: true
+
+    - name: Flush iptables rules
+      shell: |
+        iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+      ignore_errors: true
+
+    - name: Reload systemd and restart containerd
+      shell: |
+        systemctl daemon-reexec
+        systemctl daemon-reload
+        systemctl restart containerd
+      ignore_errors: true
+
+    - name: Disable swap (runtime)
+      shell: swapoff -a
+      ignore_errors: true
+
+    - name: Comment out swap entries in /etc/fstab (permanent)
+      lineinfile:
+        path: /etc/fstab
+        regexp: '^([^#].*swap.*)$'
+        line: '# \1'
+        state: present
+        backrefs: true
+        backup: true
+
+    - name: Kill process using port 10250 (if any)
+      become: true
+      shell: |
+        PID=$(lsof -ti:10250) && [ -n "$PID" ] && kill -9 $PID || true
+      ignore_errors: true

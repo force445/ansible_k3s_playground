@@ -1,0 +1,50 @@
+- name: Add K8s GPG Key
+  shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | \
+    gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add apt repo
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /"
+    filename: kubernetes
+    state: present
+
+- name: Reset Kubernetes Master node (clean up)
+  shell: |
+    kubeadm reset -f
+    systemctl stop kubelet || true
+    systemctl stop containerd || true
+    rm -rf /etc/kubernetes /var/lib/etcd /var/lib/kubelet /etc/cni /opt/cni
+  when: inventory_hostname in groups['server']
+  become: true
+  ignore_errors: true
+
+- name: Ensure containerd is started
+  systemd:
+    name: containerd
+    state: started
+    enabled: true
+
+- name: Wait for containerd socket (both paths)
+  block:
+    - wait_for:
+        path: /run/containerd/containerd.sock
+        timeout: 15
+      ignore_errors: true
+    - wait_for:
+        path: /var/run/containerd/containerd.sock
+        timeout: 15
+
+- name: Install tools
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+    update_cache: true
+
+- name: Hold
+  shell: apt-mark hold kubelet kubeadm kubectl

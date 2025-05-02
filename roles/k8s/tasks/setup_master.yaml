@@ -1,0 +1,67 @@
+- name: Stop kubelet before kubeadm init to release port 10250
+  become: true
+  systemd:
+    name: kubelet
+    state: stopped
+
+- name: Force reset Kubernetes state before init (safe cleanup)
+  become: true
+  shell: |
+    kubeadm reset -f
+    rm -rf /etc/kubernetes /var/lib/kubelet ~/.kube
+  ignore_errors: true
+
+- name: Kill process on port 10250 if exists
+  become: true
+  shell: |
+    PID=$(lsof -ti:10250) && [ -n "$PID" ] && kill -9 $PID || true
+  ignore_errors: true
+
+- name: Wait until port 10250 is free
+  become: true
+  shell: "! lsof -i :10250"
+  register: port_check
+  retries: 5
+  delay: 3
+  until: port_check.rc == 0
+  ignore_errors: true
+
+- name: Initialize Kubernetes Master
+  become: true
+  shell: kubeadm init --pod-network-cidr=192.168.0.0/16
+  register: init_output
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Start kubelet after kubeadm init
+  become: true
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes
+
+- name: Set up kubeconfig for root
+  become: true
+  shell: |
+    mkdir -p $HOME/.kube
+    cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    chown $(id -u):$(id -g) $HOME/.kube/config
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Wait for API Server to be ready
+  uri:
+    url: https://127.0.0.1:6443/healthz
+    method: GET
+    validate_certs: no
+    status_code: 200
+    timeout: 5
+  register: apiserver_ready
+  retries: 12
+  delay: 10
+  until: apiserver_ready.status == 200
+
+- name: Apply Calico network plugin
+  shell: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
