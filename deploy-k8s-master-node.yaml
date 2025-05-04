@@ -1,0 +1,12 @@
+- name: Setup Kubernetes Master Node
+  hosts: master-node
+  become: true
+
+  pre_tasks:
+      - name: Update apt cache
+        apt:
+          update_cache: yes
+        changed_when: false
+
+  roles:
+    - install-k8s-master-node

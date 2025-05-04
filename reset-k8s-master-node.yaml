@@ -1,0 +1,5 @@
+- name: Reset Kubernetes Master Node
+  hosts: master
+  become: true
+  roles:
+    - reset-k8s-node

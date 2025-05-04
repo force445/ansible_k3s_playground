@@ -1,0 +1,19 @@
+all:
+  hosts:
+    master-node:
+      ansible_host: 192.168.24.46
+      ansible_user: systemadmin
+      ansible_ssh_private_key_file: ~/ssh/prince_vm
+      
+    worker-node:
+      ansible_host: 192.168.24.47
+      ansible_user: systemadmin
+      ansible_ssh_private_key_file: ~/ssh/prince_vm
+
+  children:
+    master:
+      hosts:
+        master-node:
+    worker:
+      hosts:
+        worker-node:

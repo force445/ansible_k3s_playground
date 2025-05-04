@@ -1,0 +1,10 @@
+# send-join-script-to-worker.yaml
+- name: Send join_cluster.sh to worker node
+  hosts: worker
+  become: true
+  tasks:
+    - name: Copy join_cluster.sh to / on worker
+      copy:
+        src: fetched/join_cluster.sh
+        dest: /join_cluster.sh
+        mode: '0755'

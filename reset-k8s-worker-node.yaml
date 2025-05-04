@@ -1,0 +1,5 @@
+- name: Reset Kubernetes Worker Node
+  hosts: worker
+  become: true
+  roles:
+    - reset-k8s-node

@@ -1,0 +1,77 @@
+- name: Unhold Kubernetes packages (if held)
+  shell: apt-mark unhold kubelet kubeadm kubectl || true
+
+- name: Reset kubeadm if exists
+  shell: kubeadm reset -f || true
+  ignore_errors: true
+
+- name: Check if containerd service file exists
+  stat:
+    path: /lib/systemd/system/containerd.service
+  register: containerd_service
+
+- name: Stop kubelet and containerd if running
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  loop:
+    - kubelet
+    - containerd
+  when: item != 'containerd' or containerd_service.stat.exists
+  ignore_errors: true
+
+- name: Remove Kubernetes and containerd packages
+  apt:
+    name: "{{ item }}"
+    state: absent
+    purge: yes
+    force: yes
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+    - containerd
+    - docker.io
+  ignore_errors: true
+
+- name: Remove Kubernetes config and data directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/kubernetes
+    - /var/lib/etcd
+    - /etc/containerd
+    - /var/lib/containerd
+    - /etc/systemd/system/kubelet.service.d
+    - /etc/systemd/system/containerd.service
+    - /root/.kube
+    - /home/ubuntu/.kube
+
+- name: Remove Kubernetes APT sources and keyrings
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/kubernetes.list
+    - /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Disable and remove swap
+  shell: |
+    swapoff -a
+    sed -i '/ swap / s/^/#/' /etc/fstab
+  args:
+    executable: /bin/bash
+
+- name: Clean apt cache
+  apt:
+    autoclean: yes
+    autoremove: yes
+    update_cache: yes
+
+- name: Reboot VM after reset
+  reboot:
+    msg: "Rebooting to complete full Kubernetes reset"
+    pre_reboot_delay: 5
+    reboot_timeout: 300

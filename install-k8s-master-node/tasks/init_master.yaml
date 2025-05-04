@@ -1,0 +1,36 @@
+- name: Check if Kubernetes already initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_admin_conf
+
+- name: Pause for containerd and kubelet to stabilize
+  pause:
+    seconds: 30
+  when: not k8s_admin_conf.stat.exists
+
+- name: Initialize Kubernetes master node
+  command: kubeadm init --pod-network-cidr=192.168.0.0/16 --skip-phases=upload-config/kubelet
+  when: not k8s_admin_conf.stat.exists
+
+- name: Configure kubectl for root user
+  shell: |
+    mkdir -p /root/.kube
+    cp -i /etc/kubernetes/admin.conf /root/.kube/config
+    chown root:root /root/.kube/config
+  args:
+    creates: /root/.kube/config
+
+- name: Wait for Kubernetes API server to become reachable
+  shell: kubectl get nodes
+  environment:
+    KUBECONFIG: /root/.kube/config
+  register: api_status
+  until: api_status.rc == 0
+  retries: 20
+  delay: 10
+  changed_when: false
+
+- name: Install Calico network plugin
+  shell: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+  environment:
+    KUBECONFIG: /root/.kube/config

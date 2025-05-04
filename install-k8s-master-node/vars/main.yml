@@ -1,0 +1,4 @@
+advertise_address: "192.168.24.46"
+bind_address: "0.0.0.0"
+kube_version: "v1.29.15"
+secure_port: 6443

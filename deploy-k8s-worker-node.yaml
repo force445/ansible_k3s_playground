@@ -1,0 +1,7 @@
+# deploy-k8s-worker-node.yaml
+- name: Setup Kubernetes Worker Node
+  hosts: worker
+  become: true
+  roles:
+    - common
+    - install-k8s-worker-node

@@ -1,0 +1,15 @@
+---
+- name: Check if join_cluster.sh exists
+  stat:
+    path: /join_cluster.sh
+  register: join_script
+
+- name: Debug join command script status
+  debug:
+    msg: "/join_cluster.sh exists: {{ join_script.stat.exists }}"
+
+- name: Join Kubernetes cluster (manual trigger only)
+  shell: bash /join_cluster.sh
+  when: join_script.stat.exists and join_now | default(false)
+  args:
+    executable: /bin/bash
