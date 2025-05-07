@@ -1,0 +1,35 @@
+---
+- name: Install containerd
+  apt:
+    name: containerd
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Ensure /etc/containerd directory exists
+  file:
+    path: /etc/containerd
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Generate default config.toml for containerd
+  become: true
+  shell: "containerd config default > /etc/containerd/config.toml"
+  args:
+    creates: /etc/containerd/config.toml
+
+- name: Enable SystemdCgroup in containerd config
+  become: true
+  lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^\s*SystemdCgroup ='
+    line: '            SystemdCgroup = true'
+    state: present
+
+- name: Restart containerd
+  become: true
+  systemd:
+    name: containerd
+    enabled: true
+    state: restarted

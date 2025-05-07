@@ -1,17 +1,9 @@
 ---
-- include_tasks: install_docker.yaml
+- include_tasks: install_containerd.yaml
 
 - name: Install kubectl with binary
   ansible.builtin.shell: |
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-
-- name: Download kubectl SHA256 checksum
-  ansible.builtin.shell: |
-    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
-
-- name: Validate kubectl binary checksum
-  ansible.builtin.shell: |
-    echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
 
 - name: Install kubectl binary
   ansible.builtin.shell: |
@@ -47,9 +39,9 @@
     creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 - name: Add Kubernetes APT repository
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /"
-    filename: kubernetes
+  become: true
+  shell: |
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 
 - name: Install kubelet, kubeadm, and kubectl
   ansible.builtin.apt:

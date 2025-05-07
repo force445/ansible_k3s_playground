@@ -1,12 +1,31 @@
 ---
+- name: Check if Kubernetes already initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_admin_conf
+
+- name: Pause for containerd and kubelet to stabilize
+  pause:
+    seconds: 30
+  when: not k8s_admin_conf.stat.exists
+
 - name: k8s init (only on control plane)
   ansible.builtin.shell: |
-    sudo kubeadm init --control-plane-endpoint=127.0.0.1 --cri-socket=unix:///var/run/containerd/containerd.sock
-  when: inventory_hostname == groups['server'][0]
+    sudo kubeadm init --control-plane-endpoint=127.0.0.1 --cri-socket=unix:///var/run/containerd/containerd.sock --pod-network-cidr=192.168.0.0/16
+  when: 
+    - inventory_hostname == groups['server'][0]
+    - not k8s_admin_conf.stat.exists
 
-- name: Export kubeconfig
+- name: Configure kubectl for current user (only if just initialized)
   ansible.builtin.shell: |
-    export KUBECONFIG=/etc/kubernetes/admin.conf
+    mkdir -p $HOME/.kube
+    sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  when: 
+    - inventory_hostname == groups['server'][0]
+    - not k8s_admin_conf.stat.exists
+  environment:
+    HOME: "{{ ansible_env.HOME }}"
 
 - name: Install Helm 
   ansible.builtin.shell: |
@@ -25,7 +44,11 @@
   ansible.builtin.shell: helm repo update
 
 - name: Create Calico namespace
+  become: true
   ansible.builtin.shell: kubectl create namespace tigera-operator
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  when: inventory_hostname == groups['server'][0]
 
 - name: Install Calico using Helm
   ansible.builtin.shell: helm install calico projectcalico/tigera-operator --version v3.29.3 --namespace tigera-operator
