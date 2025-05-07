@@ -6,7 +6,8 @@
       - name: Update apt cache
         apt:
           update_cache: yes
-        changed_when: false #For ?
+        changed_when: false
 
   roles:
+    - prepare-setup
     - install-k8s-master-node
