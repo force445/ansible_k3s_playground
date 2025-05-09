@@ -1,0 +1,36 @@
+---
+- name: Remove Kubernetes and containerd packages
+  apt:
+    name: "{{ item }}"
+    state: absent
+    purge: yes
+    force: yes
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+    - containerd
+    - docker.io
+  ignore_errors: true
+
+- name: Remove Kubernetes config and data directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/kubernetes
+    - /var/lib/etcd
+    - /etc/containerd
+    - /var/lib/containerd
+    - /etc/systemd/system/kubelet.service.d
+    - /etc/systemd/system/containerd.service
+    - /root/.kube
+    - /home/ubuntu/.kube
+
+- name: Remove Kubernetes APT sources and keyrings
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/kubernetes.list
+    - /etc/apt/keyrings/kubernetes-apt-keyring.gpg

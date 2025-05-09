@@ -1,0 +1,6 @@
+- name: Disable and remove swap
+  shell: |
+    swapoff -a
+    sed -i '/ swap / s/^/#/' /etc/fstab
+  args:
+    executable: /bin/bash

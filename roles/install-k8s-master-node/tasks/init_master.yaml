@@ -1,3 +1,4 @@
+---
 - name: Check if Kubernetes already initialized
   stat:
     path: /etc/kubernetes/admin.conf

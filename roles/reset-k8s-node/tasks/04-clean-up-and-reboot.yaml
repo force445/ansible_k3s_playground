@@ -1,0 +1,12 @@
+---
+- name: Clean apt cache
+  apt:
+    autoclean: yes
+    autoremove: yes
+    update_cache: yes
+
+- name: Reboot VM after reset
+  reboot:
+    msg: "Rebooting to complete full Kubernetes reset"
+    pre_reboot_delay: 5
+    reboot_timeout: 300

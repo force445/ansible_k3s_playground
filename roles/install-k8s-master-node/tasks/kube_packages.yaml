@@ -1,3 +1,4 @@
+---
 - name: Add Kubernetes apt repo
   shell: |
     mkdir -p /etc/apt/keyrings
@@ -15,5 +16,6 @@
     state: present
     update_cache: yes
 
+# Hold k8s packages
 - name: Hold K8s packages
   command: apt-mark hold kubelet kubeadm kubectl

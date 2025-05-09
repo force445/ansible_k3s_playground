@@ -1,8 +1,8 @@
 - name: Install Containerd
-  import_tasks: containerd.yaml
+  include_tasks: containerd.yaml
 
 - name: Install Kubernetes packages
-  import_tasks: kube_packages.yaml
+  include_tasks: kube_packages.yaml
 
 - name: Init Kubernetes Master
-  import_tasks: init_master.yaml
+  include_tasks: init_master.yaml
