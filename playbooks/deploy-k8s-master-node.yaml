@@ -4,9 +4,10 @@
 
   pre_tasks:
       - name: Update apt cache770958
-      
         apt:
           update_cache: yes
+          
+        # Skip changed status on ansible status task
         changed_when: false
 
   roles:
