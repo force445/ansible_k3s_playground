@@ -3,5 +3,5 @@
   hosts: worker
   become: true
   roles:
-    - common
+    - prepare-setup
     - install-k8s-worker-node

@@ -1,4 +1,9 @@
 ---
+- name: Check if containerd config exists
+  stat:
+    path: /etc/containerd/config.toml
+  register: containerd_config_file
+
 - name: Update apt cache
   apt:
     update_cache: yes

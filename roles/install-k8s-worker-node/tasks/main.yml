@@ -1,19 +1,10 @@
-- name: Gather package facts
-  package_facts:
-    manager: auto
-
 - name: Install Kubernetes packages if not installed
-  include_tasks: install_kubernetes.yaml
+  include_tasks: 01-install_kubernetes.yaml
   when: "'kubelet' not in ansible_facts.packages"
 
-- name: Check if containerd config exists
-  stat:
-    path: /etc/containerd/config.toml
-  register: containerd_config_file
-
 - name: Install base dependencies (containerd config, etc.) if containerd config missing
-  include_tasks: install_deps.yaml
+  include_tasks: 02-install_deps.yaml
   when: containerd_config_file.stat.exists == false
 
 - name: Enable and start essential services
-  include_tasks: start_services.yaml
+  include_tasks: 03-start_services.yaml

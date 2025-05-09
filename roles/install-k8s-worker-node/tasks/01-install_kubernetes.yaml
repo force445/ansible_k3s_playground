@@ -1,4 +1,8 @@
 ---
+- name: Gather package facts
+  package_facts:
+    manager: auto
+
 - name: Add Kubernetes APT keyring
   shell: |
     mkdir -p /etc/apt/keyrings
