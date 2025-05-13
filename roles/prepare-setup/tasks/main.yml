@@ -1,9 +1,9 @@
 ---
 - name: Disable swap tempolarily
-  include_tasks: disable-swap.yaml
+  include_tasks: 01-disable-swap.yaml
 
 - name: Enable port forwarding (ipv4)
-  include_tasks: enable-port-forwarding.yaml
+  include_tasks: 02-enable-port-forwarding.yaml
 
 - name: Install Dependencies
-  include_tasks: install-deps.yaml
+  include_tasks: 03-install-deps.yaml
