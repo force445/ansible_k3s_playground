@@ -1,12 +1,14 @@
 ---
-- name: Ensure swap is off permanently
-  ansible.builtin.command: swapoff -a
-  when: ansible_swaptotal_mb > 0
-  become: true
-
 - name: Comment out swap in /etc/fstab
   ansible.builtin.replace:
     path: /etc/fstab
-    regexp: '^([^#].*\\s+swap\\s+)'
-    replace: '#\\1'
+    regexp: '^([^#].*\s+swap\s+)'
+    replace: '# \1'
+  become: true
+
+- name: Disable all active swap
+  ansible.builtin.shell: swapoff -a
+  args:
+    warn: false
+  when: ansible_swaptotal_mb > 0
   become: true
