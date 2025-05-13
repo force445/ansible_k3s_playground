@@ -1,22 +1,81 @@
 ---
-- name: Disable swap temporarily
-  ansible.builtin.shell: sudo swapoff -a
-  when: inventory_hostname in groups['agent']
+- include_tasks: install_containerd.yaml
 
-- name: Ensure swap is disabled permanently
-  ansible.builtin.shell: sudo sed -i '/swap/d' /etc/fstab
-  when: inventory_hostname in groups['agent']
-
-- name: Install kubeadm, kubelet, and kubectl
+- name: Install kubectl with binary
   ansible.builtin.shell: |
-    sudo apt-get update && \
-    sudo apt-get install -y apt-transport-https ca-certificates curl gpg && \
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
-    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list && \
-    sudo apt-get update && \
-    sudo apt-get install -y kubelet kubeadm kubectl && \
-    sudo apt-mark hold kubelet kubeadm kubectl
-  when: inventory_hostname in groups['agent']
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+- name: Install kubectl binary
+  ansible.builtin.shell: |
+    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    kubectl version --client
+
+- name: Disable swap temporarily
+  ansible.builtin.shell: |
+    sudo swapoff -a
+
+- name: Ensure APT keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Install APT transport and curl
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Add Kubernetes GPG key
+  ansible.builtin.shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | \
+    gpg --dearmor | sudo tee /etc/apt/keyrings/kubernetes-apt-keyring.gpg > /dev/null
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add Kubernetes APT repository
+  become: true
+  shell: |
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
+
+- name: Install kubelet, kubeadm, and kubectl
+  ansible.builtin.apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Hold kubelet, kubeadm, and kubectl
+  ansible.builtin.shell: sudo apt-mark hold kubelet kubeadm kubectl
+
+- name: Fetch Token (on control plane)
+  ansible.builtin.shell: kubeadm token create
+  register: k8s_token
+  become: true
+  delegate_to: "{{ groups['server'][0] }}"
+  when: inventory_hostname == groups['server'][0]
+
+- name: Show generated token
+  debug:
+    msg: "The generated token is {{ k8s_token.stdout }}"
+  when: k8s_token is defined
+
+- name: Fetch Value of --discovery-token-ca-cert-hash (on control plane)
+  ansible.builtin.shell: |
+    sudo cat /etc/kubernetes/pki/ca.crt | openssl x509 -pubkey  | openssl rsa -pubin -outform der 2>/dev/null | \
+    openssl dgst -sha256 -hex | sed 's/^.* //'
+  register: ca_cert_hash
+  become: true
+  delegate_to: "{{ groups['server'][0] }}"
+  when: inventory_hostname == groups['server'][0]
 
 - name: Join worker node to the cluster
   ansible.builtin.shell: |

@@ -28,22 +28,22 @@
       #   become_user: <host-username>
       #   become_password: <host-password>
 
-  # agent:
-  #   hosts:
-  #     chaos:
-  #       ansible_host: <host-machine-ip>
-  #       ansible_user: <host-username>
-  #       ansible_ssh_private_key_file: path/to/your/ssh/key
-  #       become: true
-  #       become_user: <host-username>
-  #       become_password: <host-password>
-  #     crios:
-  #       ansible_host: <host-machine-ip>
-  #       ansible_user: <host-username>
-  #       ansible_ssh_private_key_file: path/to/your/ssh/key
-  #       become: true
-  #       become_user: <host-username>
-  #       become_password: <host-password>
+  agent:
+    hosts:
+      chaos:
+        ansible_host: 192.168.24.46
+        ansible_user: systemadmin
+        ansible_ssh_private_key_file: ~/prince_vm
+        become: true
+        become_user: systemadmin
+        become_password: qwer1234!@#$
+      crios:
+        ansible_host: 192.168.24.47
+        ansible_user: systemadmin
+        ansible_ssh_private_key_file: ~/prince_vm
+        become: true
+        become_user: systemadmin
+        become_password: qwer1234!@#$
   #     hades:
   #       ansible_host: <host-machine-ip>
   #       ansible_user: <host-username>

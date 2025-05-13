@@ -53,27 +53,6 @@
 - name: Install Calico using Helm
   ansible.builtin.shell: helm install calico projectcalico/tigera-operator --version v3.29.3 --namespace tigera-operator
 
-- name: Fetch Token (on control plane)
-  ansible.builtin.shell: kubeadm token create
-  register: k8s_token
-  become: true
-  delegate_to: "{{ groups['server'][0] }}"
-  when: inventory_hostname == groups['server'][0]
-
-- name: Show generated token
-  debug:
-    msg: "The generated token is {{ k8s_token.stdout }}"
-  when: k8s_token is defined
-
-- name: Fetch Value of --discovery-token-ca-cert-hash (on control plane)
-  ansible.builtin.shell: |
-    sudo cat /etc/kubernetes/pki/ca.crt | openssl x509 -pubkey  | openssl rsa -pubin -outform der 2>/dev/null | \
-    openssl dgst -sha256 -hex | sed 's/^.* //'
-  register: ca_cert_hash
-  become: true
-  delegate_to: "{{ groups['server'][0] }}"
-  when: inventory_hostname == groups['server'][0]
-
 - name: Show CA cert hash
   debug:
     msg: "The CA cert hash is {{ ca_cert_hash.stdout }}"
