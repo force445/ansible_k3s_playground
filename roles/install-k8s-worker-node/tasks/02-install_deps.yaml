@@ -16,5 +16,9 @@
       - kubectl
     state: present
 
-- name: Hold Kubernetes packages to prevent unintended upgrades
-  shell: apt-mark hold kubelet kubeadm kubectl
+- name: Hold Kubernetes packages
+  command: apt-mark hold kubelet kubeadm kubectl
+  args:
+    warn: false
+  register: hold_result
+  changed_when: "'hold' in hold_result.stdout"
