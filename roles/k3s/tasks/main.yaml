@@ -8,5 +8,5 @@
 - include_tasks: install_k3s_third_master.yaml
   when: inventory_hostname != groups['server'][0] and inventory_hostname in groups['server'][2]
 
-# - include_tasks: install_k3s_worker.yaml
-#   when: inventory_hostname in groups['agent']
+- include_tasks: install_k3s_worker.yaml
+  when: inventory_hostname in groups['agent']
