@@ -56,27 +56,6 @@
 - name: Hold kubelet, kubeadm, and kubectl
   ansible.builtin.shell: sudo apt-mark hold kubelet kubeadm kubectl
 
-- name: Fetch Token (on control plane)
-  ansible.builtin.shell: kubeadm token create
-  register: k8s_token
-  become: true
-  delegate_to: "{{ groups['server'][0] }}"
-  when: inventory_hostname == groups['server'][0]
-
-- name: Show generated token
-  debug:
-    msg: "The generated token is {{ k8s_token.stdout }}"
-  when: k8s_token is defined
-
-- name: Fetch Value of --discovery-token-ca-cert-hash (on control plane)
-  ansible.builtin.shell: |
-    sudo cat /etc/kubernetes/pki/ca.crt | openssl x509 -pubkey  | openssl rsa -pubin -outform der 2>/dev/null | \
-    openssl dgst -sha256 -hex | sed 's/^.* //'
-  register: ca_cert_hash
-  become: true
-  delegate_to: "{{ groups['server'][0] }}"
-  when: inventory_hostname == groups['server'][0]
-
 - name: Join worker node to the cluster
   ansible.builtin.shell: |
     sudo kubeadm join --token {{ k8s_token.stdout }} {{ hostvars[groups['server'][0]].ansible_host }}:6443 --discovery-token-ca-cert-hash sha256:{{ ca_cert_hash.stdout }}
