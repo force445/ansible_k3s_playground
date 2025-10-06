@@ -14,3 +14,13 @@
   hosts: agent
   roles:
     - k8s
+
+- name: Configure k3s master
+  hosts: server
+  roles:
+    - k3s
+
+- name: Add workers to the k8s cluster
+  hosts: agent
+  roles:
+    - k3s
