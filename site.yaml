@@ -5,15 +5,15 @@
 #     - haproxy
 # In case of external load balancer
 
-- name: Configure k8s masters
-  hosts: server
-  roles:
-    - k8s
+# - name: Configure k8s masters
+#   hosts: server
+#   roles:
+#     - k8s
 
-- name: Add workers to the k8s cluster
-  hosts: agent
-  roles:
-    - k8s
+# - name: Add workers to the k8s cluster
+#   hosts: agent
+#   roles:
+#     - k8s
 
 - name: Configure k3s master
   hosts: server

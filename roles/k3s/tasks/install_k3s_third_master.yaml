@@ -1,7 +1,7 @@
 ---
 - name: Join the second master node to the cluster
   ansible.builtin.shell: |
-    curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.x.x+k3s1" sh -s - server \
+    curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.31.6+k3s1" sh -s - server \
       --server https://{{ hostvars[groups['server'][0]].ansible_host }}:6443 \
       --token {{ hostvars[groups['server'][0]].k3s_token.stdout }} \
       --etcd-snapshot-schedule-cron="0 */12 * * *" \
