@@ -7,6 +7,9 @@
       --etcd-snapshot-retention=7 \
       --etcd-snapshot-dir=/var/lib/rancher/k3s/server/db/snapshots \
       --write-kubeconfig-mode 644
+      --default-not-ready-toleration-seconds 60
+      --default-unreachable-toleration-seconds 60
+      
   args:
     creates: /etc/rancher/k3s/k3s.yaml
   become: true
