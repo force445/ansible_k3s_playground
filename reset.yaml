@@ -9,11 +9,11 @@
       #   warn: false
       ignore_errors: yes
 
-    # - name: Uninstall k3s agent (if installed)
-    #   ansible.builtin.shell: /usr/local/bin/k3s-agent-uninstall.sh
-    #   # args:
-    #   #   warn: false
-    #   ignore_errors: yes
+    - name: Uninstall k3s agent (if installed)
+      ansible.builtin.shell: /usr/local/bin/k3s-agent-uninstall.sh
+      # args:
+      #   warn: false
+      ignore_errors: yes
 
     - name: Remove k3s configuration and data
       ansible.builtin.file:
