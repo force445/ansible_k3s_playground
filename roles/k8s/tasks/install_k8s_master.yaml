@@ -1,17 +1,9 @@
 ---
-- include_tasks: install_docker.yaml
+- include_tasks: install_containerd.yaml
 
 - name: Install kubectl with binary
   ansible.builtin.shell: |
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-
-- name: Download kubectl SHA256 checksum
-  ansible.builtin.shell: |
-    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
-
-- name: Validate kubectl binary checksum
-  ansible.builtin.shell: |
-    echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
 
 - name: Install kubectl binary
   ansible.builtin.shell: |
@@ -22,15 +14,48 @@
   ansible.builtin.shell: |
     sudo swapoff -a
 
-- name: Install k8s v1.33 and dependencies
+- name: Ensure APT keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Install APT transport and curl
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Add Kubernetes GPG key
   ansible.builtin.shell: |
-    sudo apt-get update && \
-    sudo apt-get install -y apt-transport-https ca-certificates curl gpg && \
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
-    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list && \
-    sudo apt-get update && \
-    sudo apt-get install -y kubelet kubeadm kubectl && \
-    sudo apt-mark hold kubelet kubeadm kubectl
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | \
+    gpg --dearmor | sudo tee /etc/apt/keyrings/kubernetes-apt-keyring.gpg > /dev/null
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add Kubernetes APT repository
+  become: true
+  shell: |
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
+
+- name: Install kubelet, kubeadm, and kubectl
+  ansible.builtin.apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Hold kubelet, kubeadm, and kubectl
+  ansible.builtin.shell: sudo apt-mark hold kubelet kubeadm kubectl
+
 
 - include_tasks: init_k8s_main_master.yaml
   when: inventory_hostname == groups['server'][0]

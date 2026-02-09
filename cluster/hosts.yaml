@@ -2,55 +2,53 @@
   #   hosts:
   #     lb1:
   #       ansible_host: x.x.x.x
-  #       ansible_ssh_private_key_file: /path/to/key
+        # ansible_ssh_private_key_file: /path/to/key
 
   server:
     hosts:
-      apollo:
-        ansible_host: <host-machine-ip>
-        ansible_user: <host-username>
-        ansible_ssh_private_key_file: path/to/your/ssh/key
+      apollo-18:
+        ansible_host: x.x.x.x
+        ansible_user: username
+        ansible_ssh_private_key_file: /path/to/key
         become: true
-        become_user: <host-username>
-        become_password: <host-password>
+        become_user: root
       boreas:
-        ansible_host: <host-machine-ip>
-        ansible_user: <host-username>
-        ansible_ssh_private_key_file: path/to/your/ssh/key
+        ansible_host: x.x.x.x
+        ansible_user: username
+        ansible_ssh_private_key_file: /path/to/key
         become: true
-        become_user: <host-username>
-        become_password: <host-password>
+        become_user: root
       ares:
-        ansible_host: <host-machine-ip>
-        ansible_user: <host-username>
-        ansible_ssh_private_key_file: path/to/your/ssh/key
+        ansible_host: x.x.x.x
+        ansible_user: username
+        ansible_ssh_private_key_file: /path/to/key
         become: true
-        become_user: <host-username>
-        become_password: <host-password>
+        become_user: root
 
-  agent:
-    hosts:
-      chaos:
-        ansible_host: <host-machine-ip>
-        ansible_user: <host-username>
-        ansible_ssh_private_key_file: path/to/your/ssh/key
-        become: true
-        become_user: <host-username>
-        become_password: <host-password>
-      crios:
-        ansible_host: <host-machine-ip>
-        ansible_user: <host-username>
-        ansible_ssh_private_key_file: path/to/your/ssh/key
-        become: true
-        become_user: <host-username>
-        become_password: <host-password>
-      hades:
-        ansible_host: <host-machine-ip>
-        ansible_user: <host-username>
-        ansible_ssh_private_key_file: path/to/your/ssh/key
-        become: true
-        become_user: <host-username>
-        become_password: <host-password>
+  # agent:
+  #   hosts:
+  #     chaos:
+  #       ansible_host: x.x.x.x
+  #       ansible_user: username
+  #       ansible_ssh_private_key_file: /path/to/key
+  #       become: true
+  #       become_user: root
+      # crios:
+      #   ansible_host: <x.x.x.x>
+      #   ansible_user: <user>
+      #   ansible_password: <password>
+      #   # ansible_ssh_private_key_file: path/to/your/ssh/key
+      #   become: true
+      #   become_user: <user>
+      #   become_password: <password>
+      # hades:
+      #   ansible_host: <x.x.x.x>
+      #   ansible_user: <user>
+      #   ansible_password: <password>
+      #   # ansible_ssh_private_key_file: path/to/your/ssh/key
+      #   become: true
+      #   become_user: <user>
+      #   become_password: <password>
   cluster:
     children:
       server:

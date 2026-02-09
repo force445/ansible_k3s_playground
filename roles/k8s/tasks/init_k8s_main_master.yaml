@@ -1,16 +1,57 @@
 ---
+- name: Check if Kubernetes already initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_admin_conf
+
+- name: Pause for containerd and kubelet to stabilize
+  pause:
+    seconds: 30
+  when: not k8s_admin_conf.stat.exists
+
 - name: k8s init (only on control plane)
   ansible.builtin.shell: |
-    sudo kubeadm init --control-plane-endpoint={{ hostvars[groups['server'][0]].ansible_host }} --cri-socket=unix:///var/run/containerd/containerd.sock
+    sudo kubeadm init --control-plane-endpoint=<first-control-plane> --cri-socket=unix:///var/run/containerd/containerd.sock --pod-network-cidr=<network-range>
+  when: 
+    - inventory_hostname == groups['server'][0]
+    - not k8s_admin_conf.stat.exists
+
+- name: Configure kubectl for current user (only if just initialized)
+  ansible.builtin.shell: |
+    mkdir -p $HOME/.kube
+    sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  when: 
+    - inventory_hostname == groups['server'][0]
+    - not k8s_admin_conf.stat.exists
+  environment:
+    HOME: "{{ ansible_env.HOME }}"
+
+- name: Install Helm 
+  ansible.builtin.shell: |
+    curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+    sudo apt-get install apt-transport-https --yes
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+    sudo apt-get update
+    sudo apt-get install helm
+  args:
+    creates: /usr/bin/helm
+
+- name: Add Calico Helm repo
+  ansible.builtin.shell: helm repo add projectcalico https://docs.tigera.io/calico/charts
+
+- name: Update Helm repos
+  ansible.builtin.shell: helm repo update
+
+- name: Create Calico namespace
+  become: true
+  ansible.builtin.shell: kubectl create namespace tigera-operator
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
   when: inventory_hostname == groups['server'][0]
 
-- name: Export kubeconfig
-  ansible.builtin.shell: |
-    export KUBECONFIG=/etc/kubernetes/admin.conf
-
-- name: Install CNI (Calico)
-  ansible.builtin.shell:
-    helm install calico projectcalico/tigera-operator --version v3.29.3 --namespace tigera-operator
+- name: Install Calico using Helm
+  ansible.builtin.shell: helm install calico projectcalico/tigera-operator --version v3.29.3 --namespace tigera-operator
 
 - name: Fetch Token (on control plane)
   ansible.builtin.shell: kubeadm token create
