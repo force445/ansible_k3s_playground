@@ -11,3 +11,4 @@
 # Playbooks
 
 [main_playbook](site.yaml) this is the main playbook for installation
+[reset](reset.yaml) this playbook is for uninstall everything relevant to k3s
